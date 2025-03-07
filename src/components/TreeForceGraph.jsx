@@ -2,7 +2,19 @@ import { useMemo, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 import PropTypes from "prop-types";
 import ReactMarkdown from "react-markdown";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../services/firebase/firebaseConfig";
 
+async function readDocuments(collectionName) {
+  const docRef = doc(db, collectionName, "sR1pzBxCcGmaPZhFKzrp");
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    return docSnap.data().token;
+  } else {
+    return false;
+  }
+}
 /**
  * Función para transformar el arreglo "tree" (que contiene nodos de tipo
  * { type, name, path, children } para carpetas y { type, name, path, download_url } para archivos)
@@ -55,7 +67,8 @@ const TreeForceGraph = ({ tree }) => {
   const repo = "tecpro-planning";
   let filePath = ""; //node.id
   const branch = "main";
-  const PAT = "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"; // Token con los permisos necesarios
+  const token = async () => await readDocuments("github");
+  const headers = token ? { Authorization: `token ${token}` } : {};
   // Al hacer clic en un nodo se muestra el contenido Markdown correspondiente
   const handleNodeClick = async (node) => {
     if (node.type === "file" && node.name.toLowerCase().endsWith(".md")) {
@@ -64,12 +77,7 @@ const TreeForceGraph = ({ tree }) => {
       const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}?ref=${branch}`;
 
       // Realizamos la solicitud pasando los encabezados "Authorization" y "Accept"
-      fetch(url, {
-        headers: {
-          Authorization: `token ${PAT}`,
-          Accept: "application/vnd.github.v3.raw",
-        },
-      })
+      fetch(url, headers)
         .then((response) => {
           if (!response.ok) {
             throw new Error(`Error ${response.status}: ${response.statusText}`);
