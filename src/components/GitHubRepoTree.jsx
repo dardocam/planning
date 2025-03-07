@@ -4,7 +4,8 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "../services/firebase/firebaseConfig";
 
 async function readDocuments(collectionName) {
-  const docRef = doc(db, collectionName, "sR1pzBxCcGmaPZhFKzrp");
+  const id = "sR1pzBxCcGmaPZhFKzrp";
+  const docRef = doc(db, collectionName, id);
   const docSnap = await getDoc(docRef);
 
   if (docSnap.exists()) {
